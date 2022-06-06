@@ -29,6 +29,6 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => false,
+    'supports_credentials' => true, // This should be true for to allow "Access-Control-Allow-Credentials" i.e: API authentication from different domain 
 
 ];
