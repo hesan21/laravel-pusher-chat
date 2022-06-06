@@ -29,10 +29,12 @@ class UserRegisterRequest extends FormRequest
             ],
             'email' => [
                 'required',
+                'email',
                 'unique:users,email'
             ],
             'gender' => [
-                'required'
+                'required',
+                'in:male,female'
             ],
             'DOB' => [
                 'sometimes',

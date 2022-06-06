@@ -27,7 +27,8 @@ class UserLoginRequest extends FormRequest
     {
         return [
             'email' => [
-                'required'
+                'required',
+                'email'
             ],
             'password' => [
                 'required'
