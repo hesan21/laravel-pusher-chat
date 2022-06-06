@@ -13,7 +13,6 @@ use \App\Http\Controllers\API\AuthController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
 // Auth Routes
 Route::middleware('guest')->prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
