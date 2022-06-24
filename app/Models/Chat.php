@@ -57,6 +57,19 @@ class Chat extends Model
     }
 
     /**
+     * Chat Messages in Descending order
+     * @return HasMany
+     */
+    public function orderedMessages(): HasMany
+    {
+        return $this->hasMany(
+            ChatMessage::class,
+            'chat_id',
+            'id'
+        )->orderBy('created_at', 'DESC');
+    }
+
+    /**
      * Chat Messages
      * @return HasMany
      */
@@ -66,7 +79,7 @@ class Chat extends Model
             ChatMessage::class,
             'chat_id',
             'id'
-        )->orderBy('created_at', 'DESC');
+        );
     }
 
     /**

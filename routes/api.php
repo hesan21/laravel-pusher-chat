@@ -24,7 +24,7 @@ Route::middleware('guest')->prefix('auth')->group(function () {
 // Authenticated Routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('chat')->group(function () {
-        Route::get('/', [ ChatsController::class, 'index' ])->name('chats.index');
+        Route::get('/list', [ ChatsController::class, 'index' ])->name('chats.index');
         Route::get('/show/{chat}', [ ChatsController::class, 'show' ])->name('chats.show');
         Route::post('/send-message', [ ChatsController::class, 'sendMessage'])->name('chats.sendMessage');
         Route::post('/create-group', [ ChatsController::class, 'createGroup'])->name('chats.createGroup');

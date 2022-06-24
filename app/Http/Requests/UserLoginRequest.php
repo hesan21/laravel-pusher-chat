@@ -6,8 +6,6 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UserLoginRequest extends FormRequest
 {
-    public mixed $email;
-
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -15,7 +13,7 @@ class UserLoginRequest extends FormRequest
      */
     public function authorize()
     {
-        return !auth()->user();
+        return !auth()->hasUser();
     }
 
     /**

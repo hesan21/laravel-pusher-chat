@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Chat;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ChatResource extends JsonResource
@@ -16,8 +17,18 @@ class ChatResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'name' => $this->name ,
             'users' => UserResource::collection($this->whenLoaded('users')),
             'messages' => ChatMessageResource::collection($this->whenLoaded('messages')),
+            'type' => $this->type,
+            $this->mergeWhen(
+                $this->type == Chat::TYPE_CHAT,
+                function () use ($request) {
+                    return [
+                        'other_user' => $this->users()->whereNot('user_id', $request->user()->id)->first()
+                    ];
+                }
+            ),
             $this->mergeWhen(
                 !$this->relationLoaded('messages'),
                 function () {

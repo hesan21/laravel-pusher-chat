@@ -96,8 +96,8 @@ class ChatsController extends Controller
         if (!$chatId) {
             // In case Chat If is not passed but there exists a record in DB
             $chat = Chat::whereHas('users', function ($query) use ($user, $toUser) {
-                $query->whereIn('id', [$toUser, $user->id]);
-            })->first();
+                $query->whereIn('user_id', [$toUser, $user->id]);
+            })->where('type', Chat::TYPE_CHAT)->first();
 
             if (!$chat) {
                 // Create a Chat

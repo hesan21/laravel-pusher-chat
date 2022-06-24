@@ -52,11 +52,12 @@ class AuthController extends Controller
         // Validate User Request
         $request->validated();
 
+
         // If User email doesn't exist in the system or credentials doesn't match ( Can be Seperated Checks )
         $user = User::where('email', $request->get('email'))->first();
 
         if (!$user || Hash::check($request->password, $user->password)) {
-            return response()->error('Bad Credentials', 401);
+            return response()->error('No Record Found','Invalid Credentials', 401);
         }
 
         // Get Token for Authenticated User
