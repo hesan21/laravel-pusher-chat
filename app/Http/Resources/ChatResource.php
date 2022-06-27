@@ -17,10 +17,18 @@ class ChatResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->name ,
+            'name' => $this->name,
             'users' => UserResource::collection($this->whenLoaded('users')),
             'messages' => ChatMessageResource::collection($this->whenLoaded('messages')),
             'type' => $this->type,
+            $this->mergeWhen(
+                $this->type == Chat::TYPE_GROUP,
+                function () use ($request) {
+                    return [
+                        'member_status' => $this->users()->where('user_id', $request->user()->id)->first()->pivot->status
+                    ];
+                }
+            ),
             $this->mergeWhen(
                 $this->type == Chat::TYPE_CHAT,
                 function () use ($request) {

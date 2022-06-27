@@ -68,7 +68,7 @@ class ChatsController extends Controller
             $chat->load('users');
 
             // If The other user is opening the chat then mark messages as read
-            if ($chat->type = Chat::TYPE_CHAT) {
+            if ($chat->type === Chat::TYPE_CHAT) {
                 $chat->messages()->where('sender_id', '!=', auth()->id())->update([
                     'read_at' => Carbon::now()
                 ]);

@@ -108,6 +108,6 @@ class Chat extends Model
             'id',
             'users'
         )
-            ->withPivot(['last_active_at']);
+            ->withPivot(['last_active_at', 'status']);
     }
 }
