@@ -11,6 +11,7 @@ use App\Http\Resources\ChatUserResource;
 use App\Http\Resources\UserResource;
 use App\Models\Chat;
 use App\Models\ChatUser;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,11 +19,31 @@ use Illuminate\Http\Request;
 class ChatsController extends Controller
 {
     /**
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @param Request $request
+     * @return array | \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
+
+        //Handle Search/Filtering of Chats List
+        if ($request->queryString) {
+            // get all Matching Users and Chats
+            $chats = Chat::where('name', 'LIKE', '%' . $request->queryString . '%')->get();
+            $users = User::where('name', 'LIKE', '%' . $request->queryString . '%')
+                ->whereNot('id', $user->id)->get();
+
+            $queryResults = [
+                ...$chats,
+                ...$users
+            ];
+
+            return response()->success(
+                $queryResults,
+                'Chat List Filtered',
+                200);
+        }
+
         $chats = $user->chats;
 
         $responseData = [
@@ -39,9 +60,9 @@ class ChatsController extends Controller
      * @param Chat $chat
      * @return ChatResource
      */
-    public function show($chat)
+    public function show(Request $request,$chatId)
     {
-        $chat = Chat::find($chat);
+        $chat = Chat::find($chatId);
 
         if ($chat) {
             $chat->load('users');
@@ -59,6 +80,41 @@ class ChatsController extends Controller
                 ChatResource::make($chat),
                 'Chat Details Fetched',
                 200);
+        } else {
+            // Check if this is a user id and check if it's not authenticated user's own id
+            if (($userId = $request->user()->id) !== $chatId) {
+                $newChatUser = User::where('id', $chatId)->first();
+
+                $chat = Chat::whereHas('users', function ($query) use ($userId, $newChatUser) {
+//                    $query->whereIn('user_id', [$newChatUser->id, $userId]);
+                    $query->select(\DB::raw('count(distinct user_id)'))->whereIn('user_id', [$newChatUser->id, $userId]);
+                }, '=', 2)->where('type', Chat::TYPE_CHAT)->first();
+
+                if (!$chat) {
+                    // Create a Chat
+                    $chat = Chat::create([
+                        'user_id' => $userId
+                    ]);
+
+                    // Assign users to chat
+                    $chat->users()->sync([
+                        $userId,
+                        $newChatUser->id
+                    ]);
+
+                    return response()->success(
+                        ChatResource::make($chat),
+                        'Chat Details Fetched',
+                        200);
+
+                } else {
+                    return response()->success(
+                        ChatResource::make($chat),
+                        'Chat Details Fetched',
+                        200);
+                }
+            }
+
         }
 
         return response()->error(
@@ -119,7 +175,7 @@ class ChatsController extends Controller
         }
 
         // Check If User has left the chat or Group
-        if( $chat->users()->where('user_id', $user->id)->where('status', ChatUser::STATUS_LEAVE)->exists() ) {
+        if ($chat->users()->where('user_id', $user->id)->where('status', ChatUser::STATUS_LEAVE)->exists()) {
             return response()->error(
                 'Unable to Send the Message',
                 'You have left the group/chat',
@@ -172,6 +228,13 @@ class ChatsController extends Controller
         // Attach all users of this group
         $chatGroup->users()->attach($usersList);
 
+        // Create a first message
+        $chatGroup->messages()->create([
+            'type' => 'message',
+            'message' => 'Group Created',
+            'sender_id' => $userId
+        ]);
+
         // Trigger an event
         $responseData = [
             'group' => ChatResource::make($chatGroup),
@@ -200,7 +263,7 @@ class ChatsController extends Controller
         }
 
         // Check if user is part of the group
-        if ( !$chatGroup->users()->where('user_id', $user->id)->exists() ) {
+        if (!$chatGroup->users()->where('user_id', $user->id)->exists()) {
             return response()->error(
                 'Unable to leave the group',
                 'You are not part of this Group!',
@@ -208,7 +271,7 @@ class ChatsController extends Controller
         }
 
         // Check If user has already left the group
-        if( $chatGroup->users()->where('user_id', $user->id)->where('status', ChatUser::STATUS_LEAVE)->exists() ) {
+        if ($chatGroup->users()->where('user_id', $user->id)->where('status', ChatUser::STATUS_LEAVE)->exists()) {
             return response()->error(
                 'Unable to Leave the Group',
                 'You have already left the group',

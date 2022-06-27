@@ -12,9 +12,11 @@ class ChatMessage extends Model
 
     const TYPE_MESSAGE = 'message';
     const TYPE_FILE = 'file';
+    const TYPE_ALERT = 'alert';
 
     const AVAILABLE_TYPES = [
         self::TYPE_MESSAGE,
+        self::TYPE_ALERT,
         self::TYPE_FILE
     ];
 

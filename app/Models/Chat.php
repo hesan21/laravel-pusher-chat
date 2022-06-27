@@ -57,7 +57,7 @@ class Chat extends Model
     }
 
     /**
-     * Chat Messages in Descending order
+     * Chat Messages in Descending order ( Latest First )
      * @return HasMany
      */
     public function orderedMessages(): HasMany
