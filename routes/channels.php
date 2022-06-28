@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-Broadcast::channel('chat', function ($user, $id) {
-    return (int) $user->id === (int) $id;
+// First argument $user is authenticated user, second $id translated from above wild card {id}
+Broadcast::channel('chat.{id}', function ($user, $id) {
+//    return (int) $user->id === (int) $id;
+    return true;
 });

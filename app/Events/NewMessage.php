@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Http\Resources\ChatMessageResource;
 use App\Models\ChatMessage;
 use App\Models\User;
 use Illuminate\Broadcasting\Channel;
@@ -48,11 +49,18 @@ class NewMessage implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('chat');
+        return new PrivateChannel('chat.'.$this->message->chat_id);
     }
 
     public function broadcastAs ()
     {
-        return 'chat.message';
+        return 'message.received';
+    }
+
+    public function broadcastWith()
+    {
+        return [
+            'message' => ChatMessageResource::make($this->message),
+        ];
     }
 }
