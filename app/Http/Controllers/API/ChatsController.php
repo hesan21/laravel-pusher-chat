@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Events\NewMessage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ChatMessageRequest;
 use App\Http\Requests\CreateGroupRequest;
@@ -190,8 +191,7 @@ class ChatsController extends Controller
         ]);
 
         // Trigger an Event in Observer for new message ( Broadcast -> ChatMessage toOthers() )
-
-        //......//
+        broadcast(new NewMessage($user, $chatMessage))->toOthers();
 
         // Return a Response
         $responseData = [
