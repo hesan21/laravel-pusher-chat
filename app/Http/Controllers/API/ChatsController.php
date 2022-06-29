@@ -325,10 +325,19 @@ class ChatsController extends Controller
 
         DeleteMessageJob::dispatch($chat->id, $user->id);
 
-        if($chat->users()->where('user_id', $user->id)->status === ChatUser::STATUS_LEAVE) {
+        $detached = false;
+
+        if ($chat->users()->where('user_id', $user->id)->first()->pivot->status === ChatUser::STATUS_LEAVE) {
             $chat->users()->detach([
                 $user->id
             ]);
+            $detached = true;
         }
+
+        return response()->success(
+            [],
+            $detached ? 'Chat Left' : 'Chat Cleared',
+            200
+        );
     }
 }
