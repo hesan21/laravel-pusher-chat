@@ -10,10 +10,13 @@ use App\Http\Resources\ChatMessageResource;
 use App\Http\Resources\ChatResource;
 use App\Http\Resources\ChatUserResource;
 use App\Http\Resources\UserResource;
+use App\Jobs\DeleteMessageJob;
 use App\Models\Chat;
+use App\Models\ChatMessage;
 use App\Models\ChatUser;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -61,12 +64,12 @@ class ChatsController extends Controller
      * @param Chat $chat
      * @return ChatResource
      */
-    public function show(Request $request,$chatId)
+    public function show(Request $request, $chatId)
     {
         $chat = Chat::find($chatId);
 
         if ($chat) {
-            $chat->load('users');
+            $chat->load('activeUsers');
 
             // If The other user is opening the chat then mark messages as read
             if ($chat->type === Chat::TYPE_CHAT) {
@@ -190,7 +193,7 @@ class ChatsController extends Controller
             'sender_id' => $user->id
         ]);
 
-        // Trigger an Event in Observer for new message ( Broadcast -> ChatMessage toOthers() )
+        // Trigger an Event for new message ( Broadcast -> ChatMessage toOthers() )
         broadcast(new NewMessage($user, $chatMessage))->toOthers();
 
         // Return a Response
@@ -247,6 +250,10 @@ class ChatsController extends Controller
             201);
     }
 
+    /**
+     * @param Request $request
+     * @return mixed
+     */
     public function leaveGroup(Request $request)
     {
 //        $request->validated();
@@ -290,5 +297,38 @@ class ChatsController extends Controller
             'Group Left',
             200
         );
+    }
+
+    /**
+     * @param Request $request
+     * @param Chat $chat
+     * @return void
+     */
+    public function deleteHistory(Request $request, Chat $chat)
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        /** @var ChatMessage $chatMessage */
+        $chatMessage = ($query = ChatMessage::query())
+            ->where($query->qualifyColumn('chat_id'), $chat->id)
+            ->whereDoesntHave(
+                'userDeleteMessages',
+                function (Builder $query) use ($user) {
+                    $query->where('user_id', $user->id);
+                }
+            );
+
+        if (!$chatMessage->exists()) {
+            abort(404);
+        }
+
+        DeleteMessageJob::dispatch($chat->id, $user->id);
+
+        if($chat->users()->where('user_id', $user->id)->status === ChatUser::STATUS_LEAVE) {
+            $chat->users()->detach([
+                $user->id
+            ]);
+        }
     }
 }

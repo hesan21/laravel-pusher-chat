@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class ChatMessage extends Model
 {
@@ -39,7 +40,7 @@ class ChatMessage extends Model
     /**
      * @return BelongsTo
      */
-    public function chat() : BelongsTo
+    public function chat(): BelongsTo
     {
         return $this->belongsTo(
             Chat::class,
@@ -52,7 +53,7 @@ class ChatMessage extends Model
     /**
      * @return BelongsTo
      */
-    public function sender() : BelongsTo
+    public function sender(): BelongsTo
     {
         return $this->belongsTo(
             User::class,
@@ -60,5 +61,22 @@ class ChatMessage extends Model
             'id',
             'sender'
         );
+    }
+
+    /**
+     * @return BelongsToMany
+     */
+    public function userDeleteMessages(): BelongsToMany
+    {
+        return $this
+            ->belongsToMany(
+                User::class,
+                'deleted_messages',
+                'message_id',
+                'user_id',
+                'id',
+                'id',
+                'userDeleteMessages'
+            );
     }
 }

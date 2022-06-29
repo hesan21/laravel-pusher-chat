@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\Chat;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Str;
 
 class ChatResource extends JsonResource
 {
@@ -18,7 +19,8 @@ class ChatResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'users' => UserResource::collection($this->whenLoaded('users')),
+            'user_id' => $this->user_id,
+            'users' => UserResource::collection($this->whenLoaded('activeUsers')),
             'messages' => ChatMessageResource::collection($this->whenLoaded('messages')),
             'type' => $this->type,
             $this->mergeWhen(
@@ -40,8 +42,14 @@ class ChatResource extends JsonResource
             $this->mergeWhen(
                 !$this->relationLoaded('messages'),
                 function () {
+                    $message = $this->messages()->latest('created_at')->first();
+
+                    if($message) {
+                        $message->message = Str::limit($message->message,15);
+                    }
+
                     return [
-                        'last_message' => ChatMessageResource::make($this->messages()->latest('created_at')->first()),
+                        'last_message' => ChatMessageResource::make($message),
                         'unread_message_count' => $this->unreadmessages()->count()
                     ];
                 }

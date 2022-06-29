@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Contracts\Database\Query\Builder;
 use App\Traits\GenerateUUIDTrait;
 
 class Chat extends Model
@@ -79,13 +79,19 @@ class Chat extends Model
             ChatMessage::class,
             'chat_id',
             'id'
+        )->whereDoesntHave(
+            'userDeleteMessages',
+            function (Builder $query) {
+                $authUser = request()->user();
+                $query->where('user_id', $authUser->id);
+            }
         );
     }
 
     /**
      * Get the unread messages of a chat.
      */
-    public function unreadMessages() : HasMany
+    public function unreadMessages(): HasMany
     {
         return $this->hasMany(
             ChatMessage::class,
@@ -93,6 +99,7 @@ class Chat extends Model
             'id'
         )->whereNull('read_at');
     }
+
     /**
      * All Chat Users with their last Active Time
      * @return BelongsToMany
@@ -109,5 +116,24 @@ class Chat extends Model
             'users'
         )
             ->withPivot(['last_active_at', 'status']);
+    }
+
+    /**
+     * All Chat Users who are still in the group
+     * @return BelongsToMany
+     */
+    public function activeUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'chat_users',
+            'chat_id',
+            'user_id',
+            'id',
+            'id',
+            'users'
+        )
+            ->withPivot(['last_active_at', 'status'])
+            ->wherePivot('status', ChatUser::STATUS_PARTICIPANT);
     }
 }

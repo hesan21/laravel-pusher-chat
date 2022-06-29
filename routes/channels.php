@@ -15,6 +15,6 @@ use Illuminate\Support\Facades\Broadcast;
 
 // First argument $user is authenticated user, second $id translated from above wild card {id}
 Broadcast::channel('chat.{id}', function ($user, $id) {
-//    return (int) $user->id === (int) $id;
-    return true;
+    $chat = \App\Models\Chat::find($id);
+    return $chat->users()->where('user_id', $user->id)->exists();
 });

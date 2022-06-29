@@ -29,7 +29,7 @@ class ChatMessageRequest extends FormRequest
                 'required'
             ],
             'user_id' => [
-                'required',
+                'sometimes',
                 Rule::exists('users', 'id'),
             ],
             'chat_title' => [
