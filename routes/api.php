@@ -31,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/create-group', [ChatsController::class, 'createGroup'])->name('chats.createGroup');
         Route::post('/leave-group', [ChatsController::class, 'leaveGroup'])->name('chats.leaveGroup');
         Route::post('/delete-history/{chat}', [ChatsController::class, 'deleteHistory'])->name('chats.deleteHistory');
+        Route::post('/add-member/{chat}', [ChatsController::class, 'addMembers'])->name('chats.addMembers');
     });
 
     Route::prefix('users')->group(function () {

@@ -20,7 +20,8 @@ class ChatMessageResource extends JsonResource
             'message' => $this->message,
             'sender' => UserResource::make($this->sender),
             'read_at' => $this->read_at,
-            'type' => $this->type
+            'type' => $this->type,
+            'time' => $this->created_at->toTimeString(),
         ];
     }
 }

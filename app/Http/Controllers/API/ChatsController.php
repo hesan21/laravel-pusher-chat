@@ -233,7 +233,7 @@ class ChatsController extends Controller
 
         // Create a first message
         $chatGroup->messages()->create([
-            'type' => 'message',
+            'type' => ChatMessage::TYPE_ALERT,
             'message' => 'Group Created',
             'sender_id' => $userId
         ]);
@@ -339,5 +339,18 @@ class ChatsController extends Controller
             $detached ? 'Chat Left' : 'Chat Cleared',
             200
         );
+    }
+
+    /**
+     * @param Request $request
+     * @param Chat $chat
+     * @return void
+     */
+    public function addMembers(Request $request, Chat $chat)
+    {
+        $usersId = $request->users;
+        $chat->users()->attach($usersId);
+
+        return;
     }
 }
