@@ -90,7 +90,7 @@ class ChatsController extends Controller
                 $newChatUser = User::where('id', $chatId)->first();
 
                 $chat = Chat::whereHas('users', function ($query) use ($userId, $newChatUser) {
-//                    $query->whereIn('user_id', [$newChatUser->id, $userId]);
+                // $query->whereIn('user_id', [$newChatUser->id, $userId]);
                     $query->select(\DB::raw('count(distinct user_id)'))->whereIn('user_id', [$newChatUser->id, $userId]);
                 }, '=', 2)->where('type', Chat::TYPE_CHAT)->first();
 

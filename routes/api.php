@@ -20,9 +20,21 @@ use \App\Http\Controllers\API\UsersController;
 Route::middleware('guest')->prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register'])->name('register');
     Route::post('login', [AuthController::class, 'login'])->name('login');
+    Route::post('logout', [AuthController::class, 'logout']);
+
+    Route::post('/forgot', [AuthController::class, 'forgot']);
+    Route::post('/reset', [AuthController::class, 'reset']);
 });
 
 // Authenticated Routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', function ()
+    {
+        return auth()->user();
+    })->name('users.index');
+});
+
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('chat')->group(function () {
         Route::get('/list', [ChatsController::class, 'index'])->name('chats.index');
@@ -37,6 +49,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('users')->group(function () {
         Route::get('/list', [UsersController::class, 'index'])->name('users.index');
     });
-
-    Route::post('auth/logout', [AuthController::class, 'logout']);
 });
